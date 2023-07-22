@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Food Donation App</title>
+</head>
+<body>
+    <h1>Food Donation App</h1>
+    <div>
+        <h2>Hotel Details</h2>
+        <form id="donationForm">
+            <label for="hotel_name">Hotel Name:</label>
+            <input type="text" id="hotel_name" required>
+            <br>
+            <label for="food_items">Food Items (comma-separated):</label>
+            <input type="text" id="food_items" required>
+            <br>
+            <button type="submit">Donate Food</button>
+        </form>
+    </div>
+    <div>
+        <h2>Food Donations</h2>
+        <ul id="donationList">
+        </ul>
+    </div>
+
+    <script>
+        const donationForm = document.getElementById('donationForm');
+        const donationList = document.getElementById('donationList');
+
+        donationForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const hotelName = document.getElementById('hotel_name').value;
+            const foodItems = document.getElementById('food_items').value.split(',');
+
+            fetch('/donate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    hotel_name: hotelName,
+                    food_items: foodItems
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                donationForm.reset();
+            })
+            .catch(error => console.error('Error:', error));
+        });
+
+        function fetchFoodDonations() {
+            fetch('/get_food_donations')
+            .then(response => response.json())
+            .then(data => {
+                donationList.innerHTML = '';
+                data.forEach(donation => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${donation.hotel_name}: ${donation.food_items.join(', ')}`;
+                    donationList.appendChild(listItem);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        // Fetch the initial food donations
+        fetchFoodDonations();
+
+        // Fetch new donations every 5 seconds
+        setInterval(fetchFoodDonations, 5000);
+    </script>
+</body>
+</html>
